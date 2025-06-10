@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
 
 namespace ReactApp1.Server.Controllers
 {
@@ -10,16 +11,29 @@ namespace ReactApp1.Server.Controllers
     [Route("api/[controller]")]
     public class LmStudioController : ControllerBase
     {
+        //incoming
         public class LmStudioRequest
         {
-            public string Prompt { get; set; } = string.Empty;
+            public List<ChatMessage> Messages { get; set; } = new();
         }
 
+        //outgoing
         public class LmStudioResponse
         {
             public string Response { get; set; } = string.Empty;
+            public List<ChatMessage> Messages { get; set; } = new();
         }
 
+        public class ChatMessage
+        {
+            [JsonPropertyName("role")]
+            public string Role { get; set; } = string.Empty; // "user", "system", "assistant"
+
+            [JsonPropertyName("content")] 
+            public string Content { get; set; } = string.Empty;
+        }
+
+        //system instruction
         private readonly string systemInstruction =
             "Je bent een AI-assistent die uitsluitend informatie geeft over de Tweede Kamer der Staten-Generaal van Nederland. " +
             "Je expertise omvat alles wat met de werking, samenstelling, en activiteiten van de Tweede Kamer te maken heeft. " +
@@ -29,7 +43,7 @@ namespace ReactApp1.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<LmStudioResponse>> Post([FromBody] LmStudioRequest request)
         {
-            DotNetEnv.Env.Load();
+            DotNetEnv.Env.Load();       //load database credentials         todo: add more data en in andere file
             var host = Environment.GetEnvironmentVariable("HOST");
             var user = Environment.GetEnvironmentVariable("USER");
             var password = Environment.GetEnvironmentVariable("PASSWORD");
@@ -38,7 +52,7 @@ namespace ReactApp1.Server.Controllers
             string connectionString = $"Server={host};Database={database};User ID={user};Password={password};";
             string kamerledenText;
 
-            try
+            try //get all kamerleden_2 data in kamerledenText string
             {
                 using (var conn = new MySqlConnection(connectionString))
                 {
@@ -56,45 +70,61 @@ namespace ReactApp1.Server.Controllers
                     kamerledenText = sb.ToString();
                 }
 
-                var fullPrompt = $"{systemInstruction}\n\n{kamerledenText}\n\nVraag: {request.Prompt}";
+                // create message history
+                var fullMessages = new List<ChatMessage>
+                {
+                    new ChatMessage { Role = "system", Content = $"{systemInstruction}\n\n{kamerledenText}" }
+                };
+                fullMessages.AddRange(request.Messages);
 
-                var responseText = await SendToLmStudioAsync(fullPrompt);
-                return Ok(new LmStudioResponse { Response = responseText });
+                // Send to LMStudio
+                var assistantReply = await SendToLmStudioAsync(fullMessages);
+
+                // Add response to history
+                request.Messages.Add(new ChatMessage { Role = "assistant", Content = assistantReply });
+
+                return Ok(new LmStudioResponse { Messages = request.Messages });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new LmStudioResponse { Response = $"Fout: {ex.Message}" });
+                return StatusCode(500, new LmStudioResponse
+                {
+                    Messages = request.Messages.Append(new ChatMessage
+                    {
+                        Role = "system",
+                        Content = $"Er gaat iets fout: {ex.Message}"
+                    }).ToList()
+                });
             }
         }
 
-        private async Task<string> SendToLmStudioAsync(string prompt)
+        private async Task<string> SendToLmStudioAsync(List<ChatMessage> messages)
         {
+
+            //to prevent timeout
             using var httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromMinutes(10)
             };
 
-            // Clear any default headers and add Accept only once
+            
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+            //create requestbody
             var requestBody = new
             {
-                messages = new[]
-                {
-            new { role = "system", content = systemInstruction },
-            new { role = "user", content = prompt }
-        },
+                messages = messages,
                 temperature = 0.7,
                 max_tokens = 1024,
                 stream = false
             };
 
             var json = JsonSerializer.Serialize(requestBody);
+
+            //connect to api
             var response = await httpClient.PostAsync("http://localhost:1234/v1/chat/completions", new StringContent(json, Encoding.UTF8, "application/json"));
             var responseBody = await response.Content.ReadAsStringAsync();
-
-            Console.WriteLine(responseBody);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -106,18 +136,8 @@ namespace ReactApp1.Server.Controllers
             {
                 return choices[0].GetProperty("message").GetProperty("content").GetString() ?? "[Geen antwoord]";
             }
-            else if (doc.RootElement.TryGetProperty("results", out var results))
-            {
-                return results[0].GetProperty("text").GetString() ?? "[Geen antwoord]";
-            }
-            else if (doc.RootElement.TryGetProperty("text", out var text))
-            {
-                return text.GetString() ?? "[Geen antwoord]";
-            }
-            else
-            {
-                return "[Geen antwoord]";
-            }
+
+            return "[Geen antwoord]";
         }
 
     }
