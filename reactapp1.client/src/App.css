@@ -1,11 +1,61 @@
-﻿#root {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
+﻿html, body #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.app-container {
+    min-height: 100vh;
+    display: block;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.welcome-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
 }
 
-th, td {
-    padding-left: 1rem;
-    padding-right: 1rem;
+.app-logo {
+    width: 400px;
+    height: 400px;
 }
+
+.app-name {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-text {
+    font-size: 1.2rem;
+    color: #444;
+}
+
+.chat-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #0078d4;
+    color: #fff;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    text-decoration: none;
+    transition: background 0.2s;
+    z-index: 1000;
+}
+
+    .chat-button:hover {
+        background: #005fa3;
+    }

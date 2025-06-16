@@ -1,0 +1,25 @@
+.page-container {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    background: #fff;
+}
+
+.page-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #222;
+    text-align: center;
+}
+
+.page-description {
+    font-size: 1.1rem;
+    color: #444;
+    text-align: center;
+    max-width: 600px;
+    margin-bottom: 2rem;
+}
