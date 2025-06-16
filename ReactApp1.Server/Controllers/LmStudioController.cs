@@ -83,8 +83,10 @@ namespace ReactApp1.Server.Controllers
                 // Add response to history
                 request.Messages.Add(new ChatMessage { Role = "assistant", Content = assistantReply });
 
-                return Ok(new LmStudioResponse { Messages = request.Messages });
-            }
+                return Ok(new LmStudioResponse { 
+                    Response = assistantReply,
+                    Messages = request.Messages });
+                }
             catch (Exception ex)
             {
                 return StatusCode(500, new LmStudioResponse

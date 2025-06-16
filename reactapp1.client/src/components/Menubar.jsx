@@ -21,7 +21,7 @@ const Menubar = () => {
                   <Link to="/fracties">Fracties</Link>
               </li>
               <li>
-                  <Link to="/overons">Over Kamerkompas</Link>
+                  <Link to="/overons">Over KamerKompas</Link>
               </li>
           </ul>
       </nav>

@@ -8,10 +8,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("https://localhost:62425") // React dev server port
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+
+app.UseCors();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
