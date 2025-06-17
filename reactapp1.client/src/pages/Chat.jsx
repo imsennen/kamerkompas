@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Chat.css';
 
-// Helper to format message content
+// Formatter to utilize the \n and ** in the AI response
 function formatMessage(content) {
     let formatted = content.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
     formatted = formatted.replace(/\n/g, '<br />');
@@ -15,24 +15,28 @@ function Chat() {
     const [loading, setLoading] = useState(false);
 
     const sendMessage = async (e) => {
+        //Prevention for empty message
         e.preventDefault();
-        if (!input.trim()) return;
+        if (!input.trim()) return; 
 
-        const newMessages = [...messages, { role: 'user', content: input }];
+        //User's message gets added
+        const newMessages = [...messages, { role: 'user', content: input }]; //
         setMessages(newMessages);
         setInput('');
         setLoading(true);
 
         try {
+            //send messages to the api
             const response = await fetch('https://localhost:7059/api/LmStudio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: newMessages })
             });
             const data = await response.json();
-            setMessages(data.messages);
+            setMessages(data.messages); //update messages
         } catch (err) {
-            setMessages([...newMessages, { role: 'system', content: 'Error: CKon geen reactie krijgen.' }]);
+            //error handling
+            setMessages([...newMessages, { role: 'system', content: 'Error: Kon geen reactie krijgen.' }]);
         } finally {
             setLoading(false);
         }
@@ -42,12 +46,13 @@ function Chat() {
         <div className="chat-page">
             <div className="chatbox">
                 <div className="chat-messages">
-                    {/* Always show system message at the top */}
+                    {/* System message at the top */}
                     <div className="chat-message system">
                         <span>System: </span>
                         Welkom! Stel je vraag over de Tweede Kamer. Lees hier de{' '}
                         <Link to="/disclaimer">disclaimer</Link>.
                     </div>
+                    { /* Show messages in chat window */ }
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`chat-message ${msg.role}`}>
                             <span>{msg.role === 'user' ? 'Jij' : msg.role === 'assistant' ? 'AI' : 'System'}: </span>
@@ -56,8 +61,10 @@ function Chat() {
                             />
                         </div>
                     ))}
+                    { /* Set loading message */}
                     {loading && <div className="chat-message assistant">AI: Laat me even denken...</div>}
                 </div>
+                { /* Input for new messages */}
                 <form className="chat-input-row" onSubmit={sendMessage}>
                     <input
                         type="text"

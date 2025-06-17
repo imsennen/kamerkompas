@@ -24,6 +24,7 @@ namespace ReactApp1.Server.Controllers
             public List<ChatMessage> Messages { get; set; } = new();
         }
 
+        //chat message with role and content
         public class ChatMessage
         {
             [JsonPropertyName("role")]
@@ -33,7 +34,7 @@ namespace ReactApp1.Server.Controllers
             public string Content { get; set; } = string.Empty;
         }
 
-        //system instruction
+        //system instruction for the ai assistant
         private readonly string systemInstruction =
             "Je bent een AI-assistent die uitsluitend informatie geeft over de Tweede Kamer der Staten-Generaal van Nederland. " +
             "Je expertise omvat alles wat met de werking, samenstelling, en activiteiten van de Tweede Kamer te maken heeft. " +
@@ -70,25 +71,27 @@ namespace ReactApp1.Server.Controllers
                     kamerledenText = sb.ToString();
                 }
 
-                // create message history
+                //create message history, first message is role, instruction and data
                 var fullMessages = new List<ChatMessage>
                 {
                     new ChatMessage { Role = "system", Content = $"{systemInstruction}\n\n{kamerledenText}" }
                 };
                 fullMessages.AddRange(request.Messages);
 
-                // Send to LMStudio
+                //Send to LMStudio
                 var assistantReply = await SendToLmStudioAsync(fullMessages);
 
-                // Add response to history
+                //Add response to history
                 request.Messages.Add(new ChatMessage { Role = "assistant", Content = assistantReply });
 
+                //return response with messages
                 return Ok(new LmStudioResponse { 
                     Response = assistantReply,
                     Messages = request.Messages });
                 }
             catch (Exception ex)
             {
+                //error handling
                 return StatusCode(500, new LmStudioResponse
                 {
                     Messages = request.Messages.Append(new ChatMessage
@@ -106,9 +109,8 @@ namespace ReactApp1.Server.Controllers
             //to prevent timeout
             using var httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromMinutes(10)
+                Timeout = TimeSpan.FromMinutes(2)
             };
-
             
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -124,10 +126,11 @@ namespace ReactApp1.Server.Controllers
 
             var json = JsonSerializer.Serialize(requestBody);
 
-            //connect to api
+            //connect to LMStudio API
             var response = await httpClient.PostAsync("http://localhost:1234/v1/chat/completions", new StringContent(json, Encoding.UTF8, "application/json"));
             var responseBody = await response.Content.ReadAsStringAsync();
 
+            //error handling
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception($"LM Studio error: {responseBody}");
