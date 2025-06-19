@@ -1,6 +1,9 @@
 # kamerkompas
 Kamerkompas brings innovative insight into the activity of members of parliament, including helpful AI assistance. 
 
+Kamerkompas is to be used in combination with imsennen/kamerkompas_ai_assistant. <br>
+Kamerkompas_ai_assistant controls the AI, and connects to kamerkompas whenever it needs assistance.
+
 Project for CIP, House of Representatives of the States General during the minor Innovative Data Visualisation.
 
 <br>
