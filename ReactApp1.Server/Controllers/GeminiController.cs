@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using MySql.Data.MySqlClient;
 using System.Text;
 using System.Text.Json;
 using Google.Apis.Auth.OAuth2;
@@ -31,35 +30,13 @@ namespace ReactApp1.Server.Controllers
         public async Task<ActionResult<GeminiResponse>> Post([FromBody] GeminiRequest request)
         {
             DotNetEnv.Env.Load();
-            var host = Environment.GetEnvironmentVariable("HOST");
-            var user = Environment.GetEnvironmentVariable("USER");
-            var password = Environment.GetEnvironmentVariable("PASSWORD");
-            var database = Environment.GetEnvironmentVariable("DATABASE");
             var projectId = Environment.GetEnvironmentVariable("PROJECT_ID");
 
-            string connectionString = $"Server={host};Database={database};User ID={user};Password={password};";
-            string kamerledenText;
+            // No database connection; use only the system instruction and user prompt
+            var fullPrompt = $"{systemInstruction}\n\nVraag: {request.Prompt}";
 
             try
             {
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    await conn.OpenAsync();
-                    using var cmd = new MySqlCommand("SELECT * FROM tweede_kamer2.kamerleden_2;", conn);
-                    using var reader = await cmd.ExecuteReaderAsync();
-
-                    var sb = new StringBuilder();
-                    while (await reader.ReadAsync())
-                    {
-                        var fields = new object[reader.FieldCount];
-                        reader.GetValues(fields);
-                        sb.AppendLine(string.Join(", ", fields));
-                    }
-                    kamerledenText = sb.ToString();
-                }
-
-                var fullPrompt = $"{systemInstruction}\n\n{kamerledenText}\n\nVraag: {request.Prompt}";
-
                 var geminiResponse = await SendToGeminiAsync(fullPrompt, projectId);
                 return Ok(new GeminiResponse { Response = geminiResponse });
             }

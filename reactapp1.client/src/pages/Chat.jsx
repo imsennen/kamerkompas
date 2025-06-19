@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Chat.css';
 
@@ -13,6 +13,22 @@ function Chat() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null); 
+
+    //scroll to bottom when messages or loading changes
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, loading]);
+
+    //focus input when loading finishes
+    useEffect(() => {
+        if (!loading && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [loading]);
 
     const sendMessage = async (e) => {
         //Prevention for empty message
@@ -33,9 +49,15 @@ function Chat() {
                 body: JSON.stringify({ messages: newMessages })
             });
             const data = await response.json();
-            setMessages(data.messages); //update messages
+            if (data.messages) {
+                setMessages(data.messages); //update messages
+
+            } else {
+                throw new Error('No messages returned from API');
+            }
         } catch (err) {
             //error handling
+            console.log(err)
             setMessages([...newMessages, { role: 'system', content: 'Error: Kon geen reactie krijgen.' }]);
         } finally {
             setLoading(false);
@@ -48,7 +70,7 @@ function Chat() {
                 <div className="chat-messages">
                     {/* System message at the top */}
                     <div className="chat-message system">
-                        <span>System: </span>
+                        <span>Systeem: </span>
                         Welkom! Stel je vraag over de Tweede Kamer. Lees hier de{' '}
                         <Link to="/disclaimer">disclaimer</Link>.
                     </div>
@@ -63,6 +85,8 @@ function Chat() {
                     ))}
                     { /* Set loading message */}
                     {loading && <div className="chat-message assistant">AI: Laat me even denken...</div>}
+                    { /* Dummy div for scrolling */}
+                    <div ref={messagesEndRef} />
                 </div>
                 { /* Input for new messages */}
                 <form className="chat-input-row" onSubmit={sendMessage}>
@@ -72,6 +96,7 @@ function Chat() {
                         onChange={e => setInput(e.target.value)}
                         placeholder="Typ uw bericht..."
                         disabled={loading}
+                        ref={inputRef} // Attach ref here
                         autoFocus
                     />
                     <button type="submit" disabled={loading || !input.trim()}>Verstuur</button>

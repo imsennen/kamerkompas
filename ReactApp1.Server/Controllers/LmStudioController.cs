@@ -44,54 +44,31 @@ namespace ReactApp1.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<LmStudioResponse>> Post([FromBody] LmStudioRequest request)
         {
-            DotNetEnv.Env.Load();       //load database credentials         todo: add more data en in andere file
-            var host = Environment.GetEnvironmentVariable("HOST");
-            var user = Environment.GetEnvironmentVariable("USER");
-            var password = Environment.GetEnvironmentVariable("PASSWORD");
-            var database = Environment.GetEnvironmentVariable("DATABASE");
-
-            string connectionString = $"Server={host};Database={database};User ID={user};Password={password};";
-            string kamerledenText;
-
-            try //get all kamerleden_2 data in kamerledenText string
+            // Create message history: first message is the system instruction only
+            var fullMessages = new List<ChatMessage>
             {
-                using (var conn = new MySqlConnection(connectionString))
-                {
-                    await conn.OpenAsync();
-                    using var cmd = new MySqlCommand("SELECT * FROM tweede_kamer2.kamerleden_2;", conn);
-                    using var reader = await cmd.ExecuteReaderAsync();
+                new ChatMessage { Role = "system", Content = systemInstruction }
+            };
+            fullMessages.AddRange(request.Messages);
 
-                    var sb = new StringBuilder();
-                    while (await reader.ReadAsync())
-                    {
-                        var fields = new object[reader.FieldCount];
-                        reader.GetValues(fields);
-                        sb.AppendLine(string.Join(", ", fields));
-                    }
-                    kamerledenText = sb.ToString();
-                }
-
-                //create message history, first message is role, instruction and data
-                var fullMessages = new List<ChatMessage>
-                {
-                    new ChatMessage { Role = "system", Content = $"{systemInstruction}\n\n{kamerledenText}" }
-                };
-                fullMessages.AddRange(request.Messages);
-
-                //Send to LMStudio
+            try
+            {
+                // Send to LMStudio
                 var assistantReply = await SendToLmStudioAsync(fullMessages);
 
-                //Add response to history
+                // Add response to history
                 request.Messages.Add(new ChatMessage { Role = "assistant", Content = assistantReply });
 
-                //return response with messages
-                return Ok(new LmStudioResponse { 
+                // Return response with messages
+                return Ok(new LmStudioResponse
+                {
                     Response = assistantReply,
-                    Messages = request.Messages });
-                }
+                    Messages = request.Messages
+                });
+            }
             catch (Exception ex)
             {
-                //error handling
+                // Error handling
                 return StatusCode(500, new LmStudioResponse
                 {
                     Messages = request.Messages.Append(new ChatMessage
@@ -105,45 +82,28 @@ namespace ReactApp1.Server.Controllers
 
         private async Task<string> SendToLmStudioAsync(List<ChatMessage> messages)
         {
-
-            //to prevent timeout
             using var httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromMinutes(2)
+                Timeout = TimeSpan.FromMinutes(5)
             };
-            
+
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            //create requestbody
-            var requestBody = new
-            {
-                messages = messages,
-                temperature = 0.7,
-                max_tokens = 1024,
-                stream = false
-            };
-
+            var requestBody = new { messages = messages };
             var json = JsonSerializer.Serialize(requestBody);
 
-            //connect to LMStudio API
-            var response = await httpClient.PostAsync("http://localhost:1234/v1/chat/completions", new StringContent(json, Encoding.UTF8, "application/json"));
+            // Change the URL to your Python backend
+            var response = await httpClient.PostAsync("http://localhost:5000/chat", new StringContent(json, Encoding.UTF8, "application/json"));
             var responseBody = await response.Content.ReadAsStringAsync();
 
-            //error handling
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"LM Studio error: {responseBody}");
+                throw new Exception($"Python AI error: {responseBody}");
             }
 
             using var doc = JsonDocument.Parse(responseBody);
-            if (doc.RootElement.TryGetProperty("choices", out var choices))
-            {
-                return choices[0].GetProperty("message").GetProperty("content").GetString() ?? "[Geen antwoord]";
-            }
-
-            return "[Geen antwoord]";
+            return doc.RootElement.GetProperty("response").GetString() ?? "[Geen antwoord]";
         }
-
     }
 }
