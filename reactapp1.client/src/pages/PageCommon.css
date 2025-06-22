@@ -4,14 +4,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding-top: 3rem;
+    padding-top: 5rem;      /* Increased from 3rem to 5rem */
     padding-bottom: 3rem;
     background: #fff;
 }
 
 .page-title {
     font-size: 2rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2.5rem;  /* Increased from 1rem to 2.5rem */
     color: #222;
     text-align: center;
 }
@@ -22,4 +22,120 @@
     text-align: center;
     max-width: 600px;
     margin-bottom: 2rem;
+}
+
+.fracties-card-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2.5rem;     /* Increased from 2rem to 2.5rem */
+    justify-items: center;
+}
+
+.fractie-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 2rem;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fractie-card-img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;      /* Show the whole logo, keep aspect ratio */
+    display: block;
+    margin-bottom: 1rem;
+    padding: 10px;            /* Add space around logos */
+    box-sizing: border-box;   /* Ensure padding doesn't increase size */
+}
+
+.fractie-card-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    text-align: center;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.fractie-card-content p {
+    margin: 0.2rem 0;
+    text-align: center;
+}
+
+.meer-informatie-button {
+    display: block;
+    margin: 1.5rem auto 0 auto;
+    padding: 0.6rem 1.5rem;
+    background-color: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 0.4rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+    transition: background 0.2s, transform 0.2s;
+}
+
+.meer-informatie-button:hover,
+.meer-informatie-button:focus {
+    background-color: #125ea2;
+    transform: translateY(-2px) scale(1.04);
+    outline: none;
+}
+
+.fractie-detail-header {
+    border-radius: 12px;
+    padding: 24px 24px 16px 24px;
+    margin-bottom: 24px;
+    color: #fff;
+    position: relative;
+}
+
+.fractie-title {
+    text-align: center;
+    margin: 0 0 16px 0;
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.fractie-detail-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 32px;
+}
+
+.fractie-detail-left {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+}
+
+.fractie-logo {
+    width: 100px;
+    height: auto;
+    border-radius: 8px;
+    background: #fff;
+    padding: 4px;
+}
+
+.fractie-detail-right {
+    flex: 1 1 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.fractie-bio {
+    background: rgba(255,255,255,0.15);
+    padding: 16px;
+    border-radius: 8px;
+    max-width: 350px;
+    color: #fff;
 }

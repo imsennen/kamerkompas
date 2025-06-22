@@ -2,7 +2,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     background: #282c34;
     padding: 0.5rem 1rem;
     margin: 0;
@@ -38,4 +38,24 @@
 
 .menubar a:hover {
     text-decoration: underline;
+}
+
+.menubar-list {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-left,
+.menu-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-right {
+    margin-left: auto;
 }

@@ -7,6 +7,7 @@ import Menubar from "./components/Menubar";
 
 import Kamerleden from "./pages/Kamerleden";
 import Fracties from "./pages/Fracties";
+import FractieDetail from "./pages/FractieDetail"; // You need to create this
 import OverOns from "./pages/OverOns";
 import Disclaimer from './pages/Disclaimer';
 
@@ -36,6 +37,7 @@ function App() {
             <Routes>
                 <Route path="/kamerleden" element={<Kamerleden />} />
                 <Route path="/fracties" element={<Fracties />} />
+                <Route path="/fracties/:id" element={<FractieDetail />} />
                 <Route path="/overons" element={<OverOns />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/disclaimer" element={<Disclaimer />} />
@@ -46,7 +48,10 @@ function App() {
                             <img src={logo_kamerkompas} className="app-logo" alt="Logo kamerkompas" />
                             <h1 className="app-name">KamerKompas</h1>
                             <p className="welcome-text">
-                                Dit is KamerKompas.
+                                KamerKompas helpt je eenvoudig informatie te vinden over de Tweede Kamer der Staten-Generaal van Nederland.
+                                Ontdek bijvoorbeeld wie de huidige Kamerleden zijn of welke fracties er actief zijn.<br /><br />
+                                Heb je een vraag over de Tweede Kamer? Start een chat met onze AI-assistent voor snelle antwoorden.<br /><br />
+                                Gebruik het menu hierboven om te navigeren. Veel succes!
                             </p>
                         </div>
                     </div>
