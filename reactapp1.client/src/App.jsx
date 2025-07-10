@@ -13,7 +13,6 @@ import Disclaimer from './pages/Disclaimer';
 
 function ChatButton() {
     const location = useLocation();
-    // Hide button on /chat
     if (location.pathname === "/chat") return null;
     return (
         <a href="/chat" className="chat-button" title="Chat met de AI">

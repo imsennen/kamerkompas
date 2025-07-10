@@ -60,7 +60,9 @@ const partyBios = {
 const FractieDetail = () => {
   const { id } = useParams();
   const [fractie, setFractie] = useState(null);
+  const [leden, setLeden] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ledenLoading, setLedenLoading] = useState(true);
 
   useEffect(() => {
     fetch(`https://localhost:7059/api/Database/fracties/${id}`)
@@ -72,12 +74,27 @@ const FractieDetail = () => {
       .catch(() => setLoading(false));
   }, [id]);
 
+    useEffect(() => {
+        if (!fractie || !fractie.naamNL) {
+            setLeden([]);
+            setLedenLoading(false);
+            return;
+        }
+        setLedenLoading(true);
+        fetch(`https://localhost:7059/api/Database/leden-van-fractie?partijNaam=${encodeURIComponent(fractie.naamNL)}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setLeden(data);
+                setLedenLoading(false);
+            })
+            .catch(() => setLedenLoading(false));
+    }, [fractie]);
+
   if (loading) return <p>Loading...</p>;
   if (!fractie) return <p>Fractie niet gevonden.</p>;
 
   const color = partyColors[fractie.naamNL];
 
-    console.log(fractie);
 
   return (
       <div className="page-container">
@@ -103,7 +120,28 @@ const FractieDetail = () => {
                   <p><b>Fractievoorzitter: </b>{partyHeads[fractie.naamNL]}
                   <br />  <br /> <b>Aantal zetels: </b>{fractie.aantalZetels}</p> 
               </div>
-
+              <div className="fractie-leden-section">
+                  <h2>Leden</h2>
+                  {ledenLoading ? (
+                      <p>Leden laden...</p>
+                  ) : leden.length === 0 ? (
+                      <p>Geen leden gevonden.</p>
+                  ) : (
+                      <ul className="fractie-leden-list">
+                          {leden.map((lid, idx) => (
+                              <li key={idx}>
+                                  <b>{lid.persoonVoornamen} {lid.persoonAchternaam}</b>
+                                  {lid.functie && (
+                                      <>
+                                          {" – "}
+                                          <span>{lid.functie}</span>
+                                      </>
+                                  )}
+                              </li>
+                          ))}
+                      </ul>
+                  )}
+              </div>
               
           </div>
       </div>

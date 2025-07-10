@@ -51,6 +51,29 @@ namespace ReactApp1.Server.Controllers
             return results;
         }
 
+        // Overload of QueryAsync to support parameters
+        private async Task<List<T>> QueryAsync<T>(string sql, Func<MySqlDataReader, T> map, params MySqlParameter[] parameters)
+        {
+            var results = new List<T>();
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            using var command = new MySqlCommand(sql, connection);
+            if (parameters != null)
+            {
+                command.Parameters.AddRange(parameters);
+            }
+            using var reader = await command.ExecuteReaderAsync() as MySqlDataReader;
+            if (reader == null)
+            {
+                throw new InvalidOperationException("Failed to cast DbDataReader to MySqlDataReader.");
+            }
+            while (await reader.ReadAsync())
+            {
+                results.Add(map(reader));
+            }
+            return results;
+        }
+
         [HttpGet("fracties")]
         public async Task<IActionResult> GetFracties()
         {
@@ -98,6 +121,91 @@ namespace ReactApp1.Server.Controllers
             };
 
             return Ok(fractie);
+        }
+
+        [HttpGet("huidige-functies")]
+        public async Task<IActionResult> GetHuidigeFuncties()
+        {
+            var sql = @"
+                SELECT
+                  p.Achternaam  AS persoon_naam,
+                  f.NaamNL      AS fractie_naam,
+                  f.Afkorting   AS fractie_afkorting,
+                  fzp.functie   AS functie,
+                  fzp.van       AS functie_van,
+                  fzp.TotEnMet  AS functie_tot
+                FROM fractiezetelpersoon AS fzp
+                JOIN fractiezetel AS fz
+                  ON fzp.FractieZetel_Id = fz.Id
+                JOIN fractie AS f
+                  ON fz.Fractie_Id = f.Id
+                JOIN persoon AS p
+                  ON fzp.Persoon_Id = p.Id
+                WHERE
+                  fzp.TotEnMet IS NULL
+                  AND fz.verwijderd = FALSE
+                  AND f.verwijderd = FALSE
+                ORDER BY
+                  f.NaamNL,
+                  p.Achternaam;
+            ";
+
+            var functies = await QueryAsync(sql, r => new {
+                PersoonNaam = r.GetString("persoon_naam"),
+                FractieNaam = r.GetString("fractie_naam"),
+                FractieAfkorting = r.GetString("fractie_afkorting"),
+                Functie = r.GetString("functie"),
+                FunctieVan = r.GetDateTime("functie_van"),
+                FunctieTot = r.IsDBNull(r.GetOrdinal("functie_tot")) ? (DateTime?)null : r.GetDateTime("functie_tot")
+            });
+
+            return Ok(functies);
+        }
+
+        [HttpGet("leden-van-fractie")]
+        public async Task<IActionResult> GetLedenVanFractie([FromQuery] string partijNaam)
+        {
+            if (string.IsNullOrWhiteSpace(partijNaam))
+            {
+                return BadRequest("Parameter 'partijNaam' is required.");
+            }
+
+            var sql = @"
+                SELECT
+                  p.Achternaam  AS persoon_naam,
+                  p.Voornamen   AS persoon_voornamen,
+                  f.NaamNL      AS fractie_naam,
+                  f.Afkorting   AS fractie_afkorting,
+                  fzp.functie   AS functie,
+                  fzp.van       AS functie_van,
+                  fzp.TotEnMet  AS functie_tot
+                FROM fractiezetelpersoon AS fzp
+                JOIN fractiezetel AS fz
+                  ON fzp.FractieZetel_Id = fz.Id
+                JOIN fractie AS f
+                  ON fz.Fractie_Id = f.Id
+                JOIN persoon AS p
+                  ON fzp.Persoon_Id = p.Id
+                WHERE
+                  fzp.TotEnMet IS NULL
+                  AND fz.verwijderd = FALSE
+                  AND f.verwijderd = FALSE
+                  AND f.NaamNL = @partijNaam
+                ORDER BY
+                  p.Achternaam, p.Voornamen;
+            ";
+
+            var leden = await QueryAsync(sql, r => new {
+                PersoonAchternaam = r.GetString("persoon_naam"),
+                PersoonVoornamen = r.GetString("persoon_voornamen"),
+                FractieNaam = r.GetString("fractie_naam"),
+                FractieAfkorting = r.GetString("fractie_afkorting"),
+                Functie = r.GetString("functie"),
+                FunctieVan = r.GetDateTime("functie_van"),
+                FunctieTot = r.IsDBNull(r.GetOrdinal("functie_tot")) ? (DateTime?)null : r.GetDateTime("functie_tot")
+            }, new MySqlParameter("@partijNaam", partijNaam));
+
+            return Ok(leden);
         }
 
         ////more apis

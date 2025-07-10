@@ -31,7 +31,6 @@ function Chat() {
     }, [loading]);
 
     const sendMessage = async (e) => {
-        //Prevention for empty message
         e.preventDefault();
         if (!input.trim()) return; 
 
@@ -68,13 +67,13 @@ function Chat() {
         <div className="chat-page">
             <div className="chatbox">
                 <div className="chat-messages">
-                    {/* System message at the top */}
+                    {/* System message */}
                     <div className="chat-message system">
                         <span>Systeem: </span>
                         Welkom! Stel je vraag over de Tweede Kamer. Lees hier de{' '}
                         <Link to="/disclaimer">disclaimer</Link>.
                     </div>
-                    { /* Show messages in chat window */ }
+                    { /* chat window */ }
                     {messages.map((msg, idx) => (
                         <div key={idx} className={`chat-message ${msg.role}`}>
                             <span>{msg.role === 'user' ? 'Jij' : msg.role === 'assistant' ? 'AI' : 'System'}: </span>
@@ -83,12 +82,12 @@ function Chat() {
                             />
                         </div>
                     ))}
-                    { /* Set loading message */}
+                    { /* loading message */}
                     {loading && <div className="chat-message assistant">AI: Laat me even denken...</div>}
-                    { /* Dummy div for scrolling */}
+                    { /* scrolling */}
                     <div ref={messagesEndRef} />
                 </div>
-                { /* Input for new messages */}
+                { /* Input */}
                 <form className="chat-input-row" onSubmit={sendMessage}>
                     <input
                         type="text"
@@ -96,7 +95,7 @@ function Chat() {
                         onChange={e => setInput(e.target.value)}
                         placeholder="Typ uw bericht..."
                         disabled={loading}
-                        ref={inputRef} // Attach ref here
+                        ref={inputRef}
                         autoFocus
                     />
                     <button type="submit" disabled={loading || !input.trim()}>Verstuur</button>
