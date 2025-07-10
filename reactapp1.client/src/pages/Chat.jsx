@@ -42,6 +42,7 @@ function Chat() {
 
         try {
             //send messages to the api
+            //const response = await fetch('https://localhost:7059/api/Gemini', {
             const response = await fetch('https://localhost:7059/api/LmStudio', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
