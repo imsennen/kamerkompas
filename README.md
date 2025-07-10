@@ -29,7 +29,7 @@ Project for CIP, House of Representatives of the States General during the minor
 8. All set!
 
 
-# Made possible by: <br>
+# Made possible by <br>
 Hamsa Abou-Ammar – 22075119 <br>
 Jesse van den Broek – 24170232 <br>
 Sophie de Groot – 22138870 <br>
