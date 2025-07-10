@@ -6,24 +6,31 @@ Kamerkompas_ai_assistant controls the AI, and connects to kamerkompas whenever i
 
 Project for CIP, House of Representatives of the States General during the minor Innovative Data Visualisation. <br>
 
-# todo: add installation guide
+## How to use
 
-<br>
-<b>Made possible by:</b> <br>
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/imsennen/kamerkompas.git
+
+2. Set up your .env file for database features. <br>
+   Look at .env.example and fill in your MySql credentials.
+
+3. Set up imsennen/kamerkompas_ai_assistant.
+
+4. Set up LMStudio (https://lmstudio.ai/) with a model of your choice. We recommend any of the Gemma 3 models by Google. Pick the right size of the model depending on your system.
+    
+5. In chat.jsx, lines 45 and 46, you can pick wether to use the kamerkompas_ai_assistant or LMStudio. Make sure to only comment or uncommment the lines, depending on your choice. <br>
+   However, if you're a free user or just curious, we recommend using kamerkompas_ai_assistant. 
+
+6. Have a look at our Figma project for hi-fi designs: https://www.figma.com/design/fgsXBa2ntGvaoFgoWL7Hrw/Minor?node-id=1-2&t=eI0KUR7nsMBXknlY-1
+
+7. All set!
+
+
+# Made possible by: <br>
 Hamsa Abou-Ammar – 22075119 <br>
 Jesse van den Broek – 24170232 <br>
 Sophie de Groot – 22138870 <br>
 Sennen Schoonderwaldt – 22049428 <br>
 
-
-
-<!--
-Kamerkompas brings innovative insight into the activity of members of parliament, including helpful AI assistance.
-<br>
-Project for CIP, House of Representatives of the States General during the minor Innovative Data Visualisation.
-
-This project aims to make the work and behavior of Dutch MPs more transparent and accessible through interactive data visualisation and AI-powered exploration tools.
-Kamerkompas allows users to navigate parliamentary activity, voting behavior, and speaking time, offering a user-friendly interface supported by intelligent suggestions and summaries.
-
-Built with a focus on clarity, usability, and modern data design, Kamerkompas demonstrates how civic tech and AI can empower citizens and promote political engagement.
--->
+ 
