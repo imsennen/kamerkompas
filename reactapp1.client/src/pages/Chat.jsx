@@ -42,8 +42,8 @@ function Chat() {
 
         try {
             //send messages to the api
-            //const response = await fetch('https://localhost:7059/api/Gemini', {
-            const response = await fetch('https://localhost:7059/api/LmStudio', {
+            const response = await fetch('https://localhost:7059/api/gemini', {         //HIERZO:
+            //const response = await fetch('https://localhost:7059/api/LmStudio', {     //Wissel deze 2 lijnen om als u wilt wisselen van de GeminiAPI of de LMStudio.
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages: newMessages })

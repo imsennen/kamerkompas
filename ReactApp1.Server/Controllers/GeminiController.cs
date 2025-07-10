@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using MySql.Data.MySqlClient;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -7,29 +8,29 @@ using System.Text.Json.Serialization;
 namespace ReactApp1.Server.Controllers
 {
     [ApiController]
-    [Route("api/lmstudio")]
-    public class LmStudioController : ControllerBase
+    [Route("api/gemini")]
+    public class GeminiController : ControllerBase
     {
         //incoming
-        public class LmStudioRequest
+        public class GeminiRequest
         {
-            public List<LMStudioChatMessage> Messages { get; set; } = new();
+            public List<GeminiChatMessage> Messages { get; set; } = new();
         }
 
         //outgoing
-        public class LmStudioResponse
+        public class GeminiResponse
         {
             public string Response { get; set; } = string.Empty;
-            public List<LMStudioChatMessage> Messages { get; set; } = new();
+            public List<GeminiChatMessage> Messages { get; set; } = new();
         }
 
         //chat message with role and content
-        public class LMStudioChatMessage
+        public class GeminiChatMessage
         {
             [JsonPropertyName("role")]
             public string Role { get; set; } = string.Empty; // "user", "system", "assistant"
 
-            [JsonPropertyName("content")]
+            [JsonPropertyName("content")] 
             public string Content { get; set; } = string.Empty;
         }
 
@@ -41,25 +42,25 @@ namespace ReactApp1.Server.Controllers
             "Je beantwoordt geen vragen die buiten dit domein vallen.";
 
         [HttpPost]
-        public async Task<ActionResult<LmStudioResponse>> Post([FromBody] LmStudioRequest request)
+        public async Task<ActionResult<GeminiResponse>> Post([FromBody] GeminiRequest request)
         {
+            // Create message history: first message is the system instruction only
+            var fullMessages = new List<GeminiChatMessage>
+            {
+                new GeminiChatMessage { Role = "system", Content = systemInstruction }
+            };
+            fullMessages.AddRange(request.Messages);
+
             try
             {
-                // create message history, first message is role and instruction (no database data)
-                var fullMessages = new List<LMStudioChatMessage>
-                {
-                    new LMStudioChatMessage { Role = "system", Content = systemInstruction }
-                };
-                fullMessages.AddRange(request.Messages);
-
-                // Send to LMStudio
-                var assistantReply = await SendToLmStudioAsync(fullMessages);
+                // Send to Gemini
+                var assistantReply = await SendToGeminiAsync(fullMessages);
 
                 // Add response to history
-                request.Messages.Add(new LMStudioChatMessage { Role = "assistant", Content = assistantReply });
+                request.Messages.Add(new GeminiChatMessage { Role = "assistant", Content = assistantReply });
 
-                // return response with messages
-                return Ok(new LmStudioResponse
+                // Return response with messages
+                return Ok(new GeminiResponse
                 {
                     Response = assistantReply,
                     Messages = request.Messages
@@ -67,10 +68,10 @@ namespace ReactApp1.Server.Controllers
             }
             catch (Exception ex)
             {
-                // error handling
-                return StatusCode(500, new LmStudioResponse
+                // Error handling
+                return StatusCode(500, new GeminiResponse
                 {
-                    Messages = request.Messages.Append(new LMStudioChatMessage
+                    Messages = request.Messages.Append(new GeminiChatMessage
                     {
                         Role = "system",
                         Content = $"Er gaat iets fout: {ex.Message}"
@@ -79,45 +80,30 @@ namespace ReactApp1.Server.Controllers
             }
         }
 
-        private async Task<string> SendToLmStudioAsync(List<LMStudioChatMessage> messages)
+        private async Task<string> SendToGeminiAsync(List<GeminiChatMessage> messages)
         {
-            // to prevent timeout
             using var httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromMinutes(2)
+                Timeout = TimeSpan.FromMinutes(5)
             };
 
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // create requestbody
-            var requestBody = new
-            {
-                messages = messages,
-                temperature = 0.7,
-                max_tokens = 1024,
-                stream = false
-            };
-
+            var requestBody = new { messages = messages };
             var json = JsonSerializer.Serialize(requestBody);
 
-            // connect to LMStudio API
-            var response = await httpClient.PostAsync("http://localhost:1234/v1/chat/completions", new StringContent(json, Encoding.UTF8, "application/json"));
+            // Change the URL to your Gemini backend
+            var response = await httpClient.PostAsync("http://localhost:5000/chat", new StringContent(json, Encoding.UTF8, "application/json"));
             var responseBody = await response.Content.ReadAsStringAsync();
 
-            // error handling
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"LM Studio error: {responseBody}");
+                throw new Exception($"Gemini AI error: {responseBody}");
             }
 
             using var doc = JsonDocument.Parse(responseBody);
-            if (doc.RootElement.TryGetProperty("choices", out var choices))
-            {
-                return choices[0].GetProperty("message").GetProperty("content").GetString() ?? "[Geen antwoord]";
-            }
-
-            return "[Geen antwoord]";
+            return doc.RootElement.GetProperty("response").GetString() ?? "[Geen antwoord]";
         }
     }
 }
