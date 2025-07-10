@@ -17,7 +17,7 @@ Project for CIP, House of Representatives of the States General during the minor
 3. Set up your .env file for database features. <br>
    Look at .env.example and fill in your MySql credentials.
 
-4. Set up imsennen/kamerkompas_ai_assistant.
+4. Set up imsennen/kamerkompas_ai_assistant. It's smart to run kamerkompas in Visual Studio, and kamerkompas_ai_assistant seperatly in Visual Studio Code. 
 
 5. Set up LMStudio (https://lmstudio.ai/) with a model of your choice. We recommend any of the Gemma 3 models by Google. Pick the right size of the model depending on your system.
     
