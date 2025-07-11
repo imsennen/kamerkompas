@@ -26,7 +26,9 @@ Project for CIP, House of Representatives of the States General during the minor
 
 7. Have a look at our Figma project for hi-fi designs: https://www.figma.com/design/fgsXBa2ntGvaoFgoWL7Hrw/Minor?node-id=1-2&t=eI0KUR7nsMBXknlY-1
 
-8. All set!
+8. Look at our portfolio and paper, linked in the files. 
+
+9. All set!
 
 
 # Made possible by <br>
